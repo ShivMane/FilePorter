@@ -96,26 +96,43 @@ public class FileController {
 
             try {
 
-                String boundry = contentType.substring(contentType.indexOf("boundry=")+9);
+                String boundary = contentType.substring(contentType.indexOf("boundry=")+9);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
                 IOUtils.copy(exchange.getRequestBody(), baos);
                 byte[] requestData = baos.toByteArray();
 
-                Multiparser parser = new Multiparser(requestData, boundry);
+                Multiparser parser = new Multiparser(requestData, boundary);
 
             }catch (Exception ex){
 
             }
+        }
+    }
+
+    private static class Multiparser{
+        private final byte[] data;
+        private final String boundary;
+
+        public Multiparser(byte[] data, String boundary){
+            this.data = data;
+            this.boundary = boundary;
+        }
+
+        public ParseResult parse(){
 
         }
     }
 
-    private class DownloadHandler implements HttpHandler{
+    public static class ParseResult{
+        public final String fileName;
+        public final byte[] fileContent;
 
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-
+        public ParseResult(String fileName, byte[] fileContent){
+            this.fileName = fileName;
+            this.fileContent = fileContent;
         }
     }
+
+
 }
