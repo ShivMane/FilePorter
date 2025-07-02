@@ -1,10 +1,14 @@
 package p2p.controller;
 
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import p2p.service.FileSharer;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,7 +42,64 @@ public class FileController {
     }
 
     public void stop(){
-        server.stop();
-        System.out.println("");
+        server.stop(0);
+        System.out.println("API server Stopped");
+    }
+
+    private class CORSHandler implements HttpHandler{
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            Headers headers = exchange.getResponseHeaders();
+            headers.add("Access-Control-Allow-Origin", "*");
+            headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+            headers.add("Access-Control-Allow-Headers", "Cotent-Type, Authorozation");
+
+            if (exchange.getRequestMethod().equals("OPTIONS")){
+                exchange.sendResponseHeaders(204, -1);
+                return;
+            }
+
+            String response = "NOT FOUND";
+            exchange.sendResponseHeaders(404, response.getBytes().length);
+            try (OutputStream oos = exchange.getResponseBody()){
+                oos.write(response.getBytes());
+            }
+        }
+    }
+
+    private class Uploadhandler implements HttpHandler{
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            Headers headers = exchange.getResponseHeaders();
+            headers.add("Access-Control-Allow-Origin", "*");
+            if(!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+                String response = "Method Not Allowed";
+                exchange.sendResponseHeaders(405, response.getBytes().length);
+                try (OutputStream oos = exchange.getResponseBody()) {
+                    oos.write(response.getBytes());
+                }
+                return;
+            }
+
+            Headers requestHeaders = exchange.getRequestHeaders();
+            String contentType = requestHeaders.getFirst("Content-Type");
+            if(contentType == null || !contentType.startsWith("multipart/form-data")){
+                String response = "Bad Request: Content-Type must be multipart/form-data";
+                exchange.sendResponseHeaders(400, response.getBytes().length);
+                try (OutputStream oos = exchange.getResponseBody()) {
+                    oos.write(response.getBytes());
+                }
+                return;
+            }
+
+        }
+    }
+
+    private class DownloadHandler implements HttpHandler{
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+
+        }
     }
 }
