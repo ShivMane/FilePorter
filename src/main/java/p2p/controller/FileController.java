@@ -4,8 +4,10 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.apache.commons.io.IOUtils;
 import p2p.service.FileSharer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -90,6 +92,20 @@ public class FileController {
                     oos.write(response.getBytes());
                 }
                 return;
+            }
+
+            try {
+
+                String boundry = contentType.substring(contentType.indexOf("boundry=")+9);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+                IOUtils.copy(exchange.getRequestBody(), baos);
+                byte[] requestData = baos.toByteArray();
+
+                Multiparser parser = new Multiparser(requestData, boundry);
+
+            }catch (Exception ex){
+
             }
 
         }
